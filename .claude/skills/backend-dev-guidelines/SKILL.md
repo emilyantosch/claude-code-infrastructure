@@ -1,13 +1,13 @@
 ---
 name: backend-dev-guidelines
-description: Comprehensive backend development guide for Node.js/Express/TypeScript microservices. Use when creating routes, controllers, services, repositories, middleware, or working with Express APIs, Prisma database access, Sentry error tracking, Zod validation, unifiedConfig, dependency injection, or async patterns. Covers layered architecture (routes → controllers → services → repositories), BaseController pattern, error handling, performance monitoring, testing strategies, and migration from legacy patterns.
+description: Comprehensive backend development guide for Rust. Use when creating routes, controllers, services, repositories, middleware, or async patterns. Covers layered architecture (routes → controllers → services → repositories), BaseController pattern, error handling, performance monitoring, testing strategies, and migration from legacy patterns.
 ---
 
 # Backend Development Guidelines
 
 ## Purpose
 
-Establish consistency and best practices across backend microservices (blog-api, auth-service, notifications-service) using modern Node.js/Express/TypeScript patterns.
+Establish consistency and best practices across the entire backend services using modern Rust/Tokio patterns.
 
 ## When to Use This Skill
 
@@ -15,11 +15,12 @@ Automatically activates when working on:
 - Creating or modifying routes, endpoints, APIs
 - Building controllers, services, repositories
 - Implementing middleware (auth, validation, error handling)
-- Database operations with Prisma
-- Error tracking with Sentry
-- Input validation with Zod
+- Database operations with SQLx or SeaORM
 - Configuration management
 - Backend testing and refactoring
+<!--
+#TODO: Add other use cases for this skill based on telemetry
+-->
 
 ---
 
@@ -29,21 +30,18 @@ Automatically activates when working on:
 
 - [ ] **Route**: Clean definition, delegate to controller
 - [ ] **Controller**: Extend BaseController
-- [ ] **Service**: Business logic with DI
+- [ ] **Service**: Business logic
 - [ ] **Repository**: Database access (if complex)
-- [ ] **Validation**: Zod schema
-- [ ] **Sentry**: Error tracking
 - [ ] **Tests**: Unit + integration tests
 - [ ] **Config**: Use unifiedConfig
 
 ### New Microservice Checklist
 
+<!--
+#NOTE: This is what a resource looks like!
+#TODO: Needs more Checklist items for Microservices.
+-->
 - [ ] Directory structure (see [architecture-overview.md](architecture-overview.md))
-- [ ] instrument.ts for Sentry
-- [ ] unifiedConfig setup
-- [ ] BaseController class
-- [ ] Middleware stack
-- [ ] Error boundary
 - [ ] Testing framework
 
 ---
@@ -63,7 +61,7 @@ Services (business logic)
     ↓
 Repositories (data access)
     ↓
-Database (Prisma)
+Database (SQLx or SeaORM)
 ```
 
 **Key Principle:** Each layer has ONE responsibility.

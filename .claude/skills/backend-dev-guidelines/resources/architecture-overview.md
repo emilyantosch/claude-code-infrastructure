@@ -50,13 +50,13 @@ Complete guide to the layered architecture pattern used in backend microservices
 ┌─────────────────────────────────────┐
 │  Layer 4: REPOSITORIES              │
 │  - Data access abstraction          │
-│  - Prisma operations                │
+│  - SQLx/SeaORM operations           │
 │  - Query optimization               │
 │  - Caching                          │
 └───────────────┬─────────────────────┘
                 ↓
 ┌─────────────────────────────────────┐
-│         Database (MySQL)            │
+│    Database (SQLite/Postgres)       │
 └─────────────────────────────────────┘
 ```
 
@@ -88,7 +88,7 @@ Complete guide to the layered architecture pattern used in backend microservices
 
 ### Complete Flow Example
 
-```typescript
+```rust
 1. HTTP POST /api/users
    ↓
 2. Express matches route in userRoutes.ts
@@ -97,11 +97,10 @@ Complete guide to the layered architecture pattern used in backend microservices
    - SSOMiddleware.verifyLoginStatus (authentication)
    - auditMiddleware (context tracking)
    ↓
-4. Route handler delegates to controller:
-   router.post('/users', (req, res) => userController.create(req, res))
+4. Route handler delegates to controller
    ↓
 5. Controller validates and calls service:
-   - Validate input with Zod
+   - Validate input
    - Call userService.create(data)
    - Handle success/error
    ↓
@@ -111,28 +110,24 @@ Complete guide to the layered architecture pattern used in backend microservices
    - Return result
    ↓
 7. Repository performs database operation:
-   - PrismaService.main.user.create({ data })
    - Handle database errors
    - Return created user
    ↓
 8. Response flows back:
-   Repository → Service → Controller → Express → Client
+   Repository → Service → Controller → API → Client
 ```
 
 ### Middleware Execution Order
 
 **Critical:** Middleware executes in registration order
 
-```typescript
-app.use(Sentry.Handlers.requestHandler());  // 1. Sentry tracing (FIRST)
-app.use(express.json());                     // 2. Body parsing
-app.use(express.urlencoded({ extended: true })); // 3. URL encoding
-app.use(cookieParser());                     // 4. Cookie parsing
-app.use(SSOMiddleware.initialize());         // 5. Auth initialization
+```rust
+// 1. Body parsing
+// 2. URL encoding
+// 3. Cookie parsing
+// 4. Auth initialization
 // ... routes registered here
-app.use(auditMiddleware);                    // 6. Audit (if global)
-app.use(errorBoundary);                      // 7. Error handler (LAST)
-app.use(Sentry.Handlers.errorHandler());     // 8. Sentry errors (LAST)
+// 6. Audit (if global)
 ```
 
 **Rule:** Error handlers must be registered AFTER routes!
@@ -144,9 +139,9 @@ app.use(Sentry.Handlers.errorHandler());     // 8. Sentry errors (LAST)
 ### Email Service (Mature Pattern ✅)
 
 **Strengths:**
-- Comprehensive BaseController with Sentry integration
+- Comprehensive BaseController
 - Clean route delegation (no business logic in routes)
-- Consistent dependency injection pattern
+- Consistent dependency injection pattern using traits where it makes sense
 - Good middleware organization
 - Type-safe throughout
 - Excellent error handling
@@ -155,18 +150,18 @@ app.use(Sentry.Handlers.errorHandler());     // 8. Sentry errors (LAST)
 ```
 email/src/
 ├── controllers/
-│   ├── BaseController.ts          ✅ Excellent template
-│   ├── NotificationController.ts  ✅ Extends BaseController
-│   └── EmailController.ts         ✅ Clean patterns
+│   ├── BaseController.rs          ✅ Excellent template
+│   ├── NotificationController.rs  ✅ Extends BaseController
+│   └── EmailController.rs         ✅ Clean patterns
 ├── routes/
-│   ├── notificationRoutes.ts      ✅ Clean delegation
-│   └── emailRoutes.ts             ✅ No business logic
+│   ├── notificationRoutes.rs      ✅ Clean delegation
+│   └── emailRoutes.rs             ✅ No business logic
 ├── services/
-│   ├── NotificationService.ts     ✅ Dependency injection
-│   └── BatchingService.ts         ✅ Clear responsibility
+│   ├── NotificationService.rs     ✅ Dependency injection
+│   └── BatchingService.rs         ✅ Clear responsibility
 └── middleware/
-    ├── errorBoundary.ts           ✅ Comprehensive
-    └── DevImpersonationSSOMiddleware.ts
+    ├── errorBoundary.rs           ✅ Comprehensive
+    └── DevImpersonationSSOMiddleware.rs
 ```
 
 **Use as template** for new services!
@@ -174,9 +169,8 @@ email/src/
 ### Form Service (Transitioning ⚠️)
 
 **Strengths:**
-- Excellent workflow architecture (event sourcing)
-- Good Sentry integration
-- Innovative audit middleware (AsyncLocalStorage)
+- Excellent workflow architecture
+- Innovative audit middleware
 - Comprehensive permission system
 
 **Weaknesses:**
@@ -203,8 +197,8 @@ form/src/
     └── auditMiddleware.ts         ✅ AsyncLocalStorage pattern
 ```
 
-**Learn from:** workflow/, middleware/auditMiddleware.ts
-**Avoid:** responseRoutes.ts, direct process.env
+**Learn from:** workflow/, middleware/auditMiddleware.rs
+**Avoid:** responseRoutes.rs, direct process.env
 
 ---
 
@@ -215,14 +209,14 @@ form/src/
 **Purpose:** Handle HTTP request/response concerns
 
 **Contents:**
-- `BaseController.ts` - Base class with common methods
-- `{Feature}Controller.ts` - Feature-specific controllers
+- `BaseController.rs` - Base class with common methods
+- `{Feature}Controller.rs` - Feature-specific controllers
 
 **Naming:** PascalCase + Controller
 
 **Responsibilities:**
 - Parse request parameters
-- Validate input (Zod)
+- Validate input
 - Call appropriate service methods
 - Format responses
 - Handle errors (via BaseController)
@@ -233,7 +227,7 @@ form/src/
 **Purpose:** Business logic and orchestration
 
 **Contents:**
-- `{feature}Service.ts` - Feature business logic
+- `{feature}Service.rs` - Feature business logic
 
 **Naming:** camelCase + Service (or PascalCase + Service)
 
@@ -249,7 +243,7 @@ form/src/
 **Purpose:** Data access abstraction
 
 **Contents:**
-- `{Entity}Repository.ts` - Database operations for entity
+- `{Entity}Repository.rs` - Database operations for entity
 
 **Naming:** PascalCase + Repository
 
@@ -267,7 +261,7 @@ form/src/
 **Purpose:** Route registration ONLY
 
 **Contents:**
-- `{feature}Routes.ts` - Express router for feature
+- `{feature}Routes.rs` - Express router for feature
 
 **Naming:** camelCase + Routes
 
@@ -300,7 +294,7 @@ form/src/
 **Purpose:** Configuration management
 
 **Contents:**
-- `unifiedConfig.ts` - Type-safe configuration
+- `unifiedConfig.rs` - Type-safe configuration
 - Environment-specific configs
 
 **Pattern:** Single source of truth
@@ -310,7 +304,7 @@ form/src/
 **Purpose:** TypeScript type definitions
 
 **Contents:**
-- `{feature}.types.ts` - Feature-specific types
+- `{feature}.types.rs` - Feature-specific types
 - DTOs (Data Transfer Objects)
 - Request/Response types
 - Domain models
@@ -344,10 +338,10 @@ For simple features:
 
 ```
 src/
-├── controllers/UserController.ts
-├── services/userService.ts
-├── routes/userRoutes.ts
-└── repositories/UserRepository.ts
+├── controllers/UserController.rs
+├── services/userService.rs
+├── routes/userRoutes.rs
+└── repositories/UserRepository.rs
 ```
 
 **When to use:**
@@ -371,7 +365,7 @@ src/
 
 **Controllers Layer:**
 - ✅ Request parsing (params, body, query)
-- ✅ Input validation (Zod)
+- ✅ Input validation
 - ✅ Service calls
 - ✅ Response formatting
 - ✅ Error handling
@@ -387,7 +381,7 @@ src/
 - ❌ Direct Prisma calls (use repositories)
 
 **Repositories Layer:**
-- ✅ Prisma operations
+- ✅ SQLx/SeaORM operations
 - ✅ Query construction
 - ✅ Database error handling
 - ✅ Caching
