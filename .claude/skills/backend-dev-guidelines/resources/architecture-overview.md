@@ -378,8 +378,8 @@ src/
 - ✅ Orchestration (multiple repos)
 - ✅ Transaction management
 - ❌ HTTP concerns (Request/Response)
-- ❌ Direct Prisma calls (use repositories)
 
+- ❌ Direct Prisma calls (use repositories)
 **Repositories Layer:**
 - ✅ SQLx/SeaORM operations
 - ✅ Query construction
@@ -391,48 +391,23 @@ src/
 ### Example: User Creation
 
 **Route:**
-```typescript
-router.post('/users',
-    SSOMiddleware.verifyLoginStatus,
-    auditMiddleware,
-    (req, res) => userController.create(req, res)
-);
+```rust
+Add example for route definition here
 ```
 
 **Controller:**
-```typescript
-async create(req: Request, res: Response): Promise<void> {
-    try {
-        const validated = createUserSchema.parse(req.body);
-        const user = await this.userService.create(validated);
-        this.handleSuccess(res, user, 'User created');
-    } catch (error) {
-        this.handleError(error, res, 'create');
-    }
-}
+```rust
+Add example for user controller
 ```
 
 **Service:**
-```typescript
-async create(data: CreateUserDTO): Promise<User> {
-    // Business rule: check if email already exists
-    const existing = await this.userRepository.findByEmail(data.email);
-    if (existing) throw new ConflictError('Email already exists');
-
-    // Create user
-    return await this.userRepository.create(data);
-}
+```rust
+Add example for user creation service
 ```
 
 **Repository:**
-```typescript
-async create(data: CreateUserDTO): Promise<User> {
-    return PrismaService.main.user.create({ data });
-}
-
-async findByEmail(email: string): Promise<User | null> {
-    return PrismaService.main.user.findUnique({ where: { email } });
-}
+```rust
+Add repository end point example that handles DB interaction
 ```
 
 **Notice:** Each layer has clear, distinct responsibilities!
